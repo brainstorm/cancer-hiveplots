@@ -1,1 +1,1 @@
-[hyplot](img/hyplot_intra_inter.png)
+<img src="img/hyplot_intra_inter.png"/>
