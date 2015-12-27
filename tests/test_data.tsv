@@ -1,0 +1,6 @@
+foo	1	4	DEL
+foo	2	8	DEL
+foo	1	3	BND
+foo	1	1	DUP
+foo	1	1	DEL
+foo	1	2	DEL
