@@ -1,0 +1,4 @@
+*.svg
+*.xls
+*.pickle
+.ipynb_checkpoints/
