@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 
 """
@@ -8,7 +9,6 @@ from argparse import ArgumentParser
 from collections import Counter, defaultdict
 
 import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import gzip
@@ -19,11 +19,13 @@ import pandas as pd
 
 import vcf
 
+#matplotlib.use('Agg')
 
 def _sv_dist(fn_in):
     count = Counter()
     vcf_reader = vcf.Reader(open(fn_in, 'r'))
     samples = vcf_reader.samples
+    print(samples)
     remove_sr = remove_common = bdn = total = 0
     for record in vcf_reader:
         if record.genotype(samples[0])['GT'] == '0/0':
@@ -62,14 +64,14 @@ def simple_report(args):
         dt.to_csv(out_file, sep='\t', index=False)
         summary.append(dt)
 
-    out_file = op.join(args.out, "lumpy.tsv")
+    out_file = op.join(args.out, "svreport-lumpy.tsv")
     pd.concat(summary).to_csv(out_file, sep='\t', index=False)
 
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="clean SV VCF files.")
     parser.add_argument("--out",required=1)
-    parser.add_argument("files", nargs="*", help="bcbio final yaml.")
+    parser.add_argument("files", nargs="*", help="multiple paired (tumor/normal) lumpy-vcf.gz files")
     args = parser.parse_args()
 
     simple_report(args)

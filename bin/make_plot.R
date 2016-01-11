@@ -1,4 +1,7 @@
-df = read.table("~/repos/pipelines/glasgow/sv/res/lumpy.tsv", header=T)
+#!/usr/bin/env Rscript
+args = commandArgs(trailingOnly=TRUE)
+
+df = read.table(args[1], header=T)
 df$chrom = factor(df$chrom, levels=c(1:22,"X","Y"))
 library(ggplot2)
 ggplot(df, aes(y=counts, x=chrom, fill=sample)) +
