@@ -4,17 +4,15 @@
 import csv
 import os
 import subprocess
+from argparse import ArgumentParser
 
 import pysam
 
 def main():
-    samples = {"H1047R": ["H1047R-2-3", "H1047R-2-7", "H1047R-2-9", "H1047R-P"],
-               "MCF7": ["MCF71_4", "MCF71_8", "MCF72_5", "MCF7P"],
-               "PC9": ["PC9", "PC9_C797S_SC1", "PC9_Van", "PC9_Van_R_C797S_SCB5"]}
-    chroms = {"H1047R": ["8"],
-              "MCF7": ["18", "22"],
-              "PC9": ["7"]}
-    callers = ["lumpy", "manta"]
+    samples = {"APGI": ["APGI1953_Tumor", "APGI1955_Tumor", "APGI2049_Tumor"]}
+    chroms = {"APGI": [str(x) for x in range(1, 23)]}
+    callers = ["manta"]
+
     depths = [10, 25]
     approaches = ["full", "subset"]
     for project, samples in samples.items():
