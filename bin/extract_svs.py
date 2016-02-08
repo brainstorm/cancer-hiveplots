@@ -69,30 +69,27 @@ def parse_svs(in_file, sample, depth):
     min_su_other = depth
     for rec in pysam.VariantFile(in_file):
         if passes(rec):
-            if rec.headers.sample == sample:
-                if rec.info["SVTYPE"] == "BND":
-                    if rec.info.get("SU") is None or rec.info["SU"] > min_su_bnd:
-                        p = [rec.chrom.replace("chr", ""), rec.start, rec.start]
-                        if rec.id in bnds:
-                            p_o = bnds[rec.id]
-                            # ICGC samples encode SVTYPE (all appear to be BND)
-                            # into SVCLASS in INFO (insertion, deletion)
-                            if rec.info["SVCLASS"] is not None:
-                                yield p_o, p, rec.info["SVCLASS"]
-                            else:
-                                yield p_o, p, rec.info["SVTYPE"]
-                            del bnds[rec.id]
+            if rec.info["SVTYPE"] == "BND":
+                if rec.info.get("SU") is None or rec.info["SU"] > min_su_bnd:
+                    p = [rec.chrom.replace("chr", ""), rec.start, rec.start]
+                    if rec.id in bnds:
+                        p_o = bnds[rec.id]
+                        # ICGC samples encode SVTYPE (all appear to be BND)
+                        # into SVCLASS in INFO (insertion, deletion)
+                        if rec.info["SVCLASS"] is not None:
+                            yield p_o, p, rec.info["SVCLASS"]
                         else:
-                            mate_id = rec.info.get("MATEID")
-                            bnds[mate_id] = p
-                else:
-                    if rec.info.get("SU") is None or rec.info["SU"] > min_su_other:
-                        p1 = [rec.chrom.replace("chr", ""), rec.start, rec.start]
-                        p2 = [rec.chrom.replace("chr", ""), rec.info["END"], rec.info["END"]]
-                        yield p1, p2, rec.info["SVTYPE"]
+                            yield p_o, p, rec.info["SVTYPE"]
+                        del bnds[rec.id]
+                    else:
+                        mate_id = rec.info.get("MATEID")
+                        bnds[mate_id] = p
             else:
-                # we don't want to mixup TUMOR/NORMAL records, do we? :-S
-                continue
+                if rec.info.get("SU") is None or rec.info["SU"] > min_su_other:
+                    p1 = [rec.chrom.replace("chr", ""), rec.start, rec.start]
+                    p2 = [rec.chrom.replace("chr", ""), rec.info["END"], rec.info["END"]]
+                    yield p1, p2, rec.info["SVTYPE"]
+
 def passes(rec):
     #if rec.filter.keys() == 0 or rec.filter.keys()[0] == "PASS":
     #    if not rec.samples[0].get("GT"):
