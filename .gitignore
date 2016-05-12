@@ -1,4 +1,7 @@
 *.svg
 *.xls
 *.pickle
+*.feather
+data
 .ipynb_checkpoints/
+.DS_Store
