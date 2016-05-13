@@ -3,5 +3,6 @@
 *.pickle
 *.feather
 data
+tests/priv
 .ipynb_checkpoints/
 .DS_Store
