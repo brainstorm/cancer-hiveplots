@@ -70,13 +70,13 @@ def extract_svs(in_file, depth, chroms):
         for p1, p2, svtype in parse_svs(in_file, depth):
             if len(chroms) == 0 or (p1[0] in chroms or p2[0] in chroms):
                 if p1[0] in allowed_chroms and p2[0] in allowed_chroms:
-                    row = pd.Series([p1[0], p1[1], p1[2], p2[0], p2[1], p2[2], in_file, caller, svtype])
+                    row = pd.Series({"chrom1": p1[0], "start1": p1[1], "end1": p1[2], 
+                                     "chrom2": p2[0], "start2": p2[1], "end2": p2[2], 
+                                     "file": in_file, "caller": caller, "svtype": svtype})
                     df = df.append(row, ignore_index=True)
-                    
-    print(df)
-    # if len(df.index)>0:
-    #     log.info("Exporting to interoperable feather file...")
-    #     feather.write_dataframe(df, "{}.feather".format(in_file))
+
+    log.info("Exporting to interoperable feather file...")
+    feather.write_dataframe(df, "{}.feather".format(in_file))
 
 def parse_svs(in_file, depth):
     bnds = {}
@@ -116,8 +116,7 @@ def passes(rec):
             elif list(set(rec.samples[0].get("GT"))) != ["N"]:
                 return True
     except IndexError:
-        pass
-        #log.warn("Record ID {} does not seem to have PASS and/or GT information".format(rec.id))
+        log.warn("Record ID {} does not seem to have PASS and/or GT information".format(rec.id))
     
     return True
 
