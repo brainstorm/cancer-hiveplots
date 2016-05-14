@@ -75,8 +75,11 @@ def extract_svs(in_file, depth, chroms):
                                      "file": in_file, "caller": caller, "svtype": svtype})
                     df = df.append(row, ignore_index=True)
 
-    log.info("Exporting to interoperable feather file...")
-    feather.write_dataframe(df, "{}.feather".format(in_file))
+    try:
+        log.info("Exporting to interoperable feather file {}.feather".format(in_file))
+        feather.write_dataframe(df, "{}.feather".format(in_file))
+    except feather.ext.FeatherError:
+        log.error("Failed to serialize feather object (most likely empty source dataframe)")
 
 def parse_svs(in_file, depth):
     bnds = {}
