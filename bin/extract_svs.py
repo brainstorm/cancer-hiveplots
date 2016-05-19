@@ -15,11 +15,12 @@ import pysam
 logging.basicConfig(
         format="%(asctime)s %(levelname)-5s %(name)s : %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
-        level=logging.INFO)
+        level=logging.DEBUG)
 
 log = logging.getLogger(__file__)
 
-INPUT_DIR="/home/rvalls/dev/cancer-hiveplots/hyplot/tests/priv"
+INPUT_DIR="/home/rvalls/dev/cancer-hiveplots/hyplot/data/bndgenotype/inputs"
+OUTPUT_DIR="/home/rvalls/dev/cancer-hiveplots/hyplot/out"
 
 def _find_svcaller(in_file):
     """ Finds out the caller(s) (VEP, Snpeff, BASS...) used in a VCF.
@@ -33,11 +34,15 @@ def _find_svcaller(in_file):
     # Look at the VCF headers for hints...
     for rec in pysam.VariantFile(in_file).header.records:
         log.debug("Looking for SVcaller signature in the header line:\n {}\n".format(rec))
-        if "##source=LUMPY" in str(rec):
+        #if "##source=LUMPY" in str(rec): #XXX not reliable, gets substituted by other progs in the pipeline
+        #if "lumpy" or "LUMPY" in str(rec): #XXX detects paths in the header, not reliable either
+        if "##source=LUMPY" in str(rec) or "lumpy" in os.path.basename(in_file):
             callers.append("LUMPY")
+            break
         elif "SVCLASS" in str(rec):
             # Used by ICGC SV
             callers.append("BASS")
+            break
 
     # ... try with an actual variant if not enough
     first_variant = pysam.VariantFile(in_file).next().id
@@ -76,8 +81,9 @@ def extract_svs(in_file, depth, chroms):
                     df = df.append(row, ignore_index=True)
 
     try:
-        log.info("Exporting to interoperable feather file {}.feather".format(in_file))
-        feather.write_dataframe(df, "{}.feather".format(in_file))
+        out_file = os.path.join(OUTPUT_DIR, os.path.basename(in_file))
+        log.info("Exporting to interoperable feather file {}.feather".format(out_file))
+        feather.write_dataframe(df, "{}.feather".format(out_file))
     except feather.ext.FeatherError:
         log.error("Failed to serialize feather object (most likely empty source dataframe)")
 
@@ -93,12 +99,16 @@ def parse_svs(in_file, depth):
                         p = [rec.chrom.replace("chr", ""), rec.start, rec.start]
                         if rec.id in bnds:
                             p_o = bnds[rec.id]
-                            # ICGC samples encode SVTYPE (all appear to be BND)
-                            # into SVCLASS in INFO (insertion, deletion)
-                            if rec.info["SVCLASS"] is not None:
-                                yield p_o, p, rec.info["SVCLASS"]
-                            else:
-                                yield p_o, p, rec.info["SVTYPE"]
+                            yield p_o, p, rec.info["SVTYPE"]
+                            
+                            try:
+                                # ICGC samples encode SVTYPE (all appear to be BND)
+                                # into SVCLASS in INFO (insertion, deletion)
+                                if rec.info["SVCLASS"]:
+                                    yield p_o, p, rec.info["SVCLASS"]
+                            except KeyError:
+                                pass
+
                             del bnds[rec.id]
                         else:
                             mate_id = rec.info.get("MATEID")
@@ -141,6 +151,7 @@ def main(in_dir):
                 extract_svs(fname, depth, cur_chroms)
 
 if __name__ == "__main__":
-    in_dir = glob.glob("{}/*.vcf".format(INPUT_DIR))
+    in_dir = glob.glob("{input_dir}/*.vcf.gz".format(input_dir=INPUT_DIR))
+    print(in_dir)
 
     main(in_dir)
