@@ -2,6 +2,7 @@
 *.xls
 *.pickle
 *.feather
+out
 data
 tests/priv
 .ipynb_checkpoints/
